@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="foresight-mode" content="static">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CPC Foresight</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+<script src="vendor/echarts.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">CPC Foresight</div>
+  <form id="search" class="search" autocomplete="off">
+    <label for="q" class="sr-only">CPC code or keywords</label>
+    <input id="q" type="text" placeholder="CPC code (H01M10/052, G06N) or words (battery, neural)" spellcheck="false">
+    <button type="submit">Analyse</button>
+    <ul id="suggest" class="suggest" role="listbox" hidden></ul>
+  </form>
+  <div class="stamp" id="stamp"></div>
+</header>
+
+<div class="filters" id="filters" hidden>
+  <span class="filter-label">Look ahead</span>
+  <div class="seg" id="horizon" role="radiogroup" aria-label="Forecast horizon"></div>
+  <span class="filter-note" id="horizon-note"></span>
+</div>
+
+<main id="main">
+  <section id="empty" class="empty">
+    <h1>See what is coming to your technology field</h1>
+    <p>Enter a CPC classification. The dashboard maps it to its subclass and shows how that
+      field and its neighbours are forecast to move over the next quarters: activity, disruption
+      (CD index), which fields are taking over its role, where new links are forming, and the
+      words and companies driving it.</p>
+    <div id="popular" class="chips"></div>
+  </section>
+
+  <section id="view" hidden>
+    <div class="title-row">
+      <div>
+        <div class="code" id="v-code"></div>
+        <h1 id="v-title"></h1>
+        <div class="sub" id="v-sub"></div>
+      </div>
+      <div class="note" id="v-group"></div>
+    </div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="grid">
+      <article class="card wide">
+        <header><h2>Filing activity</h2><button class="tbl" data-for="ch-activity">Table</button></header>
+        <p class="desc">Share of all US applications filed in a quarter that fall in this subclass (4-quarter sum).
+          Shaded: quarters still filling in as applications publish. Band: 80% forecast interval.</p>
+        <div class="chart" id="ch-activity"></div><div class="tablewrap" id="ch-activity-t" hidden></div>
+      </article>
+
+      <article class="card">
+        <header><h2>Disruption (CD index)</h2><button class="tbl" data-for="ch-cd">Table</button></header>
+        <p class="desc">Share of patents in the top 10% of their grant-year cohort by 5-year CD index.
+          Shaded: 5-year citation windows still open, so values there are provisional.</p>
+        <div class="chart" id="ch-cd"></div><div class="tablewrap" id="ch-cd-t" hidden></div>
+      </article>
+
+      <article class="card">
+        <header><h2>CD index against neighbours</h2>
+          <div class="seg small" id="cd-metric" role="radiogroup" aria-label="CD metric">
+            <button data-m="cd_top_share_4q" class="on">Highly disruptive share</button>
+            <button data-m="cd_mean_4q">Mean CD</button>
+          </div>
+          <button class="tbl" data-for="ch-cdn">Table</button></header>
+        <p class="desc">This subclass and its four closest neighbours, 4-quarter pooled.</p>
+        <div class="chart" id="ch-cdn"></div><div class="tablewrap" id="ch-cdn-t" hidden></div>
+      </article>
+
+      <article class="card wide">
+        <header><h2>Technology neighbourhood</h2></header>
+        <p class="desc">Closest subclasses by co-classification, citations and text similarity.
+          Click a node to open it. Dashed links are white spaces: not linked today, forecast to link.</p>
+        <div class="chart tall" id="ch-graph"></div>
+        <div class="legend" id="graph-legend"></div>
+      </article>
+
+      <article class="card">
+        <header><h2>Threats</h2></header>
+        <p class="desc">Fields forecast to take over the role this subclass plays (substitution), or
+          close neighbours forecast to grow faster and be more disruptive (overtaking).</p>
+        <div id="threats"></div>
+      </article>
+
+      <article class="card">
+        <header><h2>Opportunities</h2></header>
+        <p class="desc">Pull: fields forecast to build on this subclass more. Convergence: co-classification
+          forecast to strengthen.</p>
+        <div id="opps"></div>
+      </article>
+
+      <article class="card">
+        <header><h2>White spaces</h2></header>
+        <p class="desc">Subclasses that read like this one (top quarter by text similarity) but are not linked
+          to it today, ranked by the forecast probability of a new co-classification link.</p>
+        <div id="whitespace"></div>
+      </article>
+
+      <article class="card">
+        <header><h2>Recent technology</h2></header>
+        <p class="desc">Distinctive terms in titles over the last two years, and terms whose share rose most
+          in the last four quarters.</p>
+        <div id="keywords"></div>
+      </article>
+
+      <article class="card">
+        <header><h2>Who is active</h2></header>
+        <p class="desc">Applicants by fractional filings in the last 8 quarters, and the fastest risers.</p>
+        <div id="assignees"></div>
+      </article>
+
+      <article class="card">
+        <header><h2>Notable disruptive patents</h2></header>
+        <p class="desc">Recently granted patents in this subclass with the highest CD index so far.</p>
+        <div id="patents"></div>
+      </article>
+
+      <article class="card">
+        <header><h2>What the model looked at</h2></header>
+        <p class="desc">Neighbours the graph attention weighted most for this subclass in the latest quarter.</p>
+        <div id="attention"></div>
+      </article>
+
+      <article class="card">
+        <header><h2>How reliable is this</h2></header>
+        <p class="desc">Rolling-origin backtest at this horizon. Skill = error reduction against
+          "no change" and against a non-graph boosted-tree model.</p>
+        <div id="reliability"></div>
+      </article>
+    </div>
+  </section>
+</main>
+<div id="tooltip" class="tooltip" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
