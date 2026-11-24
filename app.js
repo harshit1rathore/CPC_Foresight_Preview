@@ -499,13 +499,21 @@ function renderReliability() {
   const rows = (S.backtest || []).filter((r) => Number(r.h) === S.h);
   const box = $("reliability");
   if (!rows.length) { box.replaceChildren(el("p", { class: "muted", text: "Backtest not run (05_train_gnn.py without --skip-backtest)." })); return; }
-  const reg = rows.filter((r) => r.kind !== "formation"), fm = rows.filter((r) => r.kind === "formation");
+  const node = rows.filter((r) => r.kind === "node"), edge = rows.filter((r) => r.kind === "edge"),
+    fm = rows.filter((r) => r.kind === "formation");
   const sk = (x) => x === null || x === undefined ? "–" : signed(x, (v) => pct(v, 0));
-  box.replaceChildren(simpleTable([{ t: "Forecast" }, { t: "vs no change", num: 1 }, { t: "vs GBM", num: 1 }, { t: "80% band covers", num: 1 }],
-    reg.map((r) => [el("td", { text: TARGET_NAMES[r.target] || r.target }), el("td", { class: "num", text: sk(r.skill_vs_persistence) }),
-      el("td", { class: "num", text: sk(r.skill_vs_gbm) }), el("td", { class: "num", text: pct(r.coverage80, 0) })])));
+  const cov = (r) => pct(r.coverage80_calibrated ?? r.coverage80, 0);
+  const mix = (w) => w === null || w === undefined ? "GNN" : w >= 0.95 ? "GNN" : w <= 0.05 ? "trees" :
+    `${Math.round(w * 100)}% GNN`;
+  box.replaceChildren(simpleTable(
+    [{ t: "Forecast" }, { t: "vs no change", num: 1 }, { t: "vs plain GBM", num: 1 }, { t: "80% band covers", num: 1 }, { t: "Model", num: 1 }],
+    [...node.map((r) => [el("td", { text: TARGET_NAMES[r.target] || r.target }), el("td", { class: "num", text: sk(r.skill_vs_persistence) }),
+        el("td", { class: "num", text: sk(r.skill_vs_gbm) }), el("td", { class: "num", text: cov(r) }),
+        el("td", { class: "num", text: mix(r.w_gnn_final ?? r.w_gnn) })]),
+     ...edge.map((r) => [el("td", { text: TARGET_NAMES[r.target] || r.target }), el("td", { class: "num", text: sk(r.skill_vs_persistence) }),
+        el("td", { class: "num", text: "–" }), el("td", { class: "num", text: pct(r.coverage80, 0) }), el("td", { class: "num", text: "GNN" })])]));
   for (const f of fm) box.append(el("p", { class: "desc", style: "margin-top:8px",
-    text: `New-link forecasts: AUC ${num(f.auc)} (simple co-classification heuristic ${num(f.auc_heuristic)}), ` +
+    text: `New-link forecasts (GNN): AUC ${num(f.auc)} (simple co-classification heuristic ${num(f.auc_heuristic)}), ` +
       `average precision ${num(f.ap)} vs ${num(f.ap_heuristic)}, base rate ${pct(f.base_rate)}.` }));
 }
 

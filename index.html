@@ -132,7 +132,8 @@
       <article class="card">
         <header><h2>How reliable is this</h2></header>
         <p class="desc">Rolling-origin backtest at this horizon. Skill = error reduction against
-          "no change" and against a non-graph boosted-tree model.</p>
+          "no change" and against boosted trees that see only the subclass's own history. Per-subclass
+          forecasts blend the GNN with graph-augmented boosted trees; "Model" shows the mix.</p>
         <div id="reliability"></div>
       </article>
     </div>
